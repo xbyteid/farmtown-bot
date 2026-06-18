@@ -1,43 +1,31 @@
 #!/bin/bash
 # FarmTown Multi-Wallet Launcher
-# Usage: ./farmtown-launcher.sh [start|stop|status|logs|logs <wallet>]
-
-set -e
+# Usage: ./farmtown-launcher.sh [start|stop|status|logs]
 
 LOGDIR="/tmp/farmtown-logs"
 mkdir -p "$LOGDIR"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BOT_SCRIPT="$SCRIPT_DIR/farmtown-bot.py"
 
-# Auto-detect wallets from keypair files
-detect_wallets() {
-    local wallets=""
-    for f in "$HOME"/.farmtown-keypair-*.json; do
-        [ -f "$f" ] || continue
-        wid=$(basename "$f" | sed 's/.farmtown-keypair-//;s/.json//')
-        wallets="$wallets $wid"
-    done
-    echo "$wallets"
-}
-
-WALLETS="${FARMTOWN_WALLETS:-$(detect_wallets)}"
+WALLETS="w01 w02 w03 w04 w05 w06 w07 w08 w09 w10 w11"
 
 start_wallet() {
     WALLET=$1
     LOGFILE="$LOGDIR/${WALLET}.log"
     PIDFILE="$LOGDIR/${WALLET}.pid"
-
+    
+    # Check if already running
     if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
         echo "[$WALLET] already running (PID $(cat $PIDFILE))"
         return
     fi
-
-    if [ ! -f "$HOME/.farmtown-keypair-${WALLET}.json" ]; then
+    
+    # Check if keypair exists
+    if [ ! -f "/root/.farmtown-keypair-${WALLET}.json" ]; then
         echo "[$WALLET] keypair not found, skipping"
         return
     fi
-
-    PYTHONUNBUFFERED=1 python3 "$BOT_SCRIPT" "$WALLET" > "$LOGFILE" 2>&1 &
+    
+    # Start bot
+    PYTHONUNBUFFERED=1 python3 /root/farmtown-bot.py "$WALLET" > "$LOGFILE" 2>&1 &
     PID=$!
     echo $PID > "$PIDFILE"
     echo "[$WALLET] started (PID $PID) → $LOGFILE"
@@ -46,22 +34,22 @@ start_wallet() {
 stop_wallet() {
     WALLET=$1
     PIDFILE="$LOGDIR/${WALLET}.pid"
-
+    
     if [ -f "$PIDFILE" ]; then
         PID=$(cat "$PIDFILE")
         if kill -0 "$PID" 2>/dev/null; then
-            kill "$PID" 2>/dev/null
-            echo "[$WALLET] stopped (PID $PID)"
+            kill -9 "$PID" 2>/dev/null
+            echo "[$WALLET] killed (PID $PID)"
         else
-            echo "[$WALLET] was not running (stale PID)"
+            echo "[$WALLET] not running (stale PID)"
         fi
         rm -f "$PIDFILE"
     else
-        # Try to find by process name
-        PID=$(pgrep -f "farmtown-bot.py $WALLET" 2>/dev/null | head -1)
-        if [ -n "$PID" ]; then
-            kill "$PID" 2>/dev/null
-            echo "[$WALLET] stopped (PID $PID)"
+        # Try to find by process
+        PIDS=$(pgrep -f "farmtown-bot.py $WALLET" 2>/dev/null)
+        if [ -n "$PIDS" ]; then
+            echo "$PIDS" | xargs kill -9 2>/dev/null
+            echo "[$WALLET] killed (found by process)"
         else
             echo "[$WALLET] not running"
         fi
@@ -72,91 +60,50 @@ status_wallet() {
     WALLET=$1
     PIDFILE="$LOGDIR/${WALLET}.pid"
     LOGFILE="$LOGDIR/${WALLET}.log"
-
+    
     if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
         PID=$(cat "$PIDFILE")
         LAST=$(tail -1 "$LOGFILE" 2>/dev/null | head -c 120)
-        echo "[$WALLET] ✅ PID:$PID | $LAST"
+        echo "[$WALLET] ✅ PID $PID | $LAST"
     else
         echo "[$WALLET] ❌ not running"
     fi
 }
 
-case "${1:-help}" in
+case "${1:-start}" in
     start)
-        echo "🌾 Starting FarmTown bots..."
-        if [ -n "$2" ]; then
-            start_wallet "$2"
-        else
-            if [ -z "$WALLETS" ]; then
-                echo "No wallets found. Create keypair files:"
-                echo "  echo '[253, 81, ...]' > ~/.farmtown-keypair-w01.json"
-                exit 1
-            fi
-            for w in $WALLETS; do
-                start_wallet "$w"
-            done
-        fi
+        echo "🌾 Starting all FarmTown bots..."
+        for W in $WALLETS; do start_wallet $W; sleep 1; done
         echo ""
         echo "Done! Logs: tail -f $LOGDIR/wXX.log"
         echo "Status: $0 status"
         ;;
     stop)
-        echo "Stopping bots..."
-        if [ -n "$2" ]; then
-            stop_wallet "$2"
-        else
-            for w in $WALLETS; do
-                stop_wallet "$w"
-            done
-        fi
+        echo "🛑 Stopping all FarmTown bots..."
+        for W in $WALLETS; do stop_wallet $W; done
+        ;;
+    status)
+        echo "🌾 FarmTown Bot Status:"
+        for W in $WALLETS; do status_wallet $W; done
+        ;;
+    logs)
+        WALLET=${2:-w01}
+        echo "📋 Logs for $WALLET:"
+        tail -20 "$LOGDIR/${WALLET}.log" 2>/dev/null || echo "No log file"
         ;;
     restart)
         $0 stop
         sleep 2
         $0 start
         ;;
-    status)
-        echo "🌾 FarmTown Bot Status:"
-        echo "========================"
-        if [ -n "$2" ]; then
-            status_wallet "$2"
-        else
-            for w in $WALLETS; do
-                status_wallet "$w"
-            done
-        fi
+    single)
+        WALLET=${2:-w01}
+        echo "🌾 Starting single wallet: $WALLET"
+        start_wallet $WALLET
         ;;
-    logs)
-        if [ -n "$2" ]; then
-            tail -f "$LOGDIR/$2.log"
-        else
-            echo "Available logs:"
-            ls -la "$LOGDIR"/*.log 2>/dev/null || echo "No logs found"
-            echo ""
-            echo "Usage: $0 logs <wallet_id>"
-        fi
-        ;;
-    help|*)
-        echo "FarmTown Multi-Wallet Launcher"
+    *)
+        echo "Usage: $0 {start|stop|status|restart|logs [wallet]|single [wallet]}"
         echo ""
-        echo "Usage: $0 <command> [wallet_id]"
-        echo ""
-        echo "Commands:"
-        echo "  start [w01]    Start all wallets (or specific one)"
-        echo "  stop  [w01]    Stop all wallets (or specific one)"
-        echo "  restart        Restart all wallets"
-        echo "  status [w01]   Show status of all (or specific) wallets"
-        echo "  logs   w01     Tail logs for a specific wallet"
-        echo ""
-        echo "Wallet setup:"
-        echo "  1. Get your Solana wallet bytes (64 bytes JSON array)"
-        echo "  2. Save as ~/.farmtown-keypair-w01.json"
-        echo "  3. Run: $0 start"
-        echo ""
-        echo "Environment:"
-        echo "  FARMTOWN_WALLETS='w01 w02 w03'  Override wallet list"
-        echo "  FARMTOWN_LEVEL_FLOOR=10         Don't burn below this level"
-        echo "  FARMTOWN_GOLD_KEEP=100          Keep this much gold on burn"
+        echo "Wallets: $WALLETS"
         ;;
 esac

@@ -4,13 +4,37 @@ Automated farming bot for [FarmTown](https://farmtown.online) — a browser-base
 
 ## Features
 
-- 🌱 **Auto plant/harvest** — parallel harvesting & planting
-- 📦 **Auto orders & jobs** — claim rewards automatically  
-- 🏗️ **Auto expand** — buy plots when you have enough gold
+- 🌱 **Auto plant/harvest** — parallel harvesting & planting with **most expensive crop priority** (max EXP + gold)
+- 📦 **Auto orders & jobs** — claim rewards automatically
+- 🏗️ **Auto expand** — buy plots when affordable, dynamic cost scaling
 - 🔥 **Pool burn** — auto-sacrifice gold/FP/levels to Farmer's Pool for $FARM rewards
-- 🔑 **Auto-auth** — wallet challenge/verify with auto-refresh
-- 📊 **Metrics** — gold/hr, harvests/hr, levels, cycles
-- 👥 **Multi-wallet** — run multiple wallets in parallel
+- 🧹 **Auto clear** — remove dead crops, blockers (trees/rocks/bushes)
+- ⭐ **Star collection** — auto-collect falling stars
+- 🔑 **Auto-auth** — wallet challenge/verify with auto-refresh, Supabase key auto-extracted from game JS
+- 📊 **Metrics** — gold/hr, harvests/hr, levels, cycles, errors
+- 👥 **Multi-wallet** — run 1-100+ wallets in parallel via launcher
+- 🎯 **Smart seed selection** — prioritizes most expensive affordable crop per level for maximum EXP/harvest
+
+## Crop Priority
+
+The bot always plants the **most expensive crop** you can afford and have level for:
+
+| Crop | Level | Cost | Grow Time | Strategy |
+|------|-------|------|-----------|----------|
+| Blueberry | 15 | 2,600g | 3h | 🏆 Best EXP |
+| Strawberry | 15 | 1,900g | 2h | |
+| Pepper | 15 | 1,300g | 1.5h | |
+| Cucumber | 10 | 850g | 1h | |
+| Melon | 10 | 650g | 45m | |
+| Pumpkin | 10 | 400g | 30m | |
+| Wheat | 5 | 220g | 18m | |
+| Onion | 5 | 140g | 12m | |
+| Tomato | 5 | 90g | 8m | |
+| Corn | 1 | 45g | 5m | |
+| Carrot | 1 | 20g | 2m | |
+| Potato | 1 | 5g | 45s | 🏷️ Fallback |
+
+Higher cost = more EXP + more gold per harvest. The bot automatically picks the best crop for your level and gold balance.
 
 ## Quick Start
 
@@ -40,8 +64,6 @@ Create keypair files for each wallet:
 # ...etc
 ```
 
-The launcher auto-detects all `~/.farmtown-keypair-*.json` files.
-
 ```bash
 ./farmtown-launcher.sh start      # Start all
 ./farmtown-launcher.sh status     # Check status
@@ -56,8 +78,9 @@ FARMTOWN_WALLETS="w01 w02 w03" ./farmtown-launcher.sh start
 
 ## Supabase Key (Auto-Extracted)
 
-The bot automatically extracts the Supabase anon key from the game's JS bundle on first run. If auto-extraction fails:
+The bot automatically extracts the Supabase anon key from the game's JS bundle on first run. No manual setup needed.
 
+If auto-extraction fails:
 1. Visit https://play.farmtown.online in browser
 2. Open DevTools → Sources
 3. Search for `supabase` — find the anon key (starts with `eyJ...`)
@@ -73,34 +96,24 @@ When the Farmer's Pool is active, the bot automatically burns:
 - **Farm Points** — all available
 - **Levels** — all burnable levels (safety floor: Lv10)
 
-### ⚠️ IMPORTANT: Pool Timing
+### ⚠️ Pool Timing
 
 The pool API may return `status: "active"` BEFORE the countdown reaches zero. Burns made before the pool is truly open will have **0 power** (wasted resources).
 
-The bot includes a safety check: it verifies `totalClaimPower > 0` before burning, which indicates other participants have already burned successfully.
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FARMTOWN_KEYPAIR` | `~/.farmtown-keypair-{ID}.json` | Keypair file path |
-| `FARMTOWN_SUPAKEY` | `~/.farmtown-supakey.hex` | Supabase key file |
-| `FARMTOWN_LEVEL_FLOOR` | `10` | Don't burn below this level |
-| `FARMTOWN_GOLD_KEEP` | `100` | Keep this much gold on burn |
-| `FARMTOWN_GOLD_RESERVE` | `1000` | Min gold for farming operations |
-| `FARMTOWN_WALLETS` | auto-detect | Space-separated wallet IDs |
+The bot includes a safety check: it verifies `totalClaimPower > 0` before burning.
 
 ## How It Works
 
 1. **Auth** — Signs a wallet challenge message using ed25519
 2. **Snapshot** — Fetches current game state (tiles, inventory, gold, etc.)
-3. **Cycle** — Each cycle does:
+3. **Cycle** — Each cycle:
    - Claim completed jobs
+   - Complete starter tasks
    - Collect falling stars
-   - Clear dead crops & blockers (trees/rocks)
+   - Clear dead crops & blockers (trees/rocks/bushes)
    - Harvest ready crops (parallel)
    - Expand plots (when affordable)
-   - Buy seeds & plant (parallel)
+   - Buy seeds & plant most expensive crop (parallel)
    - Complete orders
    - Pool burn (when active)
 4. **Wait** — Sleep until next cycle (based on crop grow times)
@@ -115,7 +128,7 @@ The bot includes a safety check: it verifies `totalClaimPower > 0` before burnin
 
 ## Disclaimer
 
-This bot interacts with a live game. Use at your own risk. The authors are not responsible for any loss of in-game assets or account bans.
+This bot interacts with a live game server. Use at your own risk. The authors are not responsible for any loss of in-game assets or account bans.
 
 ## License
 
