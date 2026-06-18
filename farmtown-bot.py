@@ -14,18 +14,25 @@ BASE = "https://play.farmtown.online"
 
 # (seed_id, min_level, cost_gold, grow_minutes, crop_name)
 CROPS = [
-    ("potato_seed",  1,    5,  0.75, "potato"),
-    ("carrot_seed",  1,   20,  2,    "carrot"),
-    ("corn_seed",    1,   45,  5,    "corn"),
-    ("tomato_seed",  5,   90,  8,    "tomato"),
-    ("onion_seed",   5,  140, 12,    "onion"),
-    ("wheat_seed",   5,  220, 18,    "wheat"),
-    ("pumpkin_seed", 10, 400, 30,    "pumpkin"),
-    ("melon_seed",   10, 650, 45,    "melon"),
-    ("cucumber_seed",10, 850, 60,    "cucumber"),
-    ("pepper_seed",  15,1300, 90,    "pepper"),
-    ("strawberry_seed",15,1900,120,  "strawberry"),
-    ("blueberry_seed",15,2600,180,   "blueberry"),
+    ("potato_seed",       1,     5,    0.75, "potato"),
+    ("carrot_seed",       1,    20,    2,    "carrot"),
+    ("corn_seed",         1,    45,    5,    "corn"),
+    ("tomato_seed",       5,    90,    8,    "tomato"),
+    ("onion_seed",        5,   140,   12,    "onion"),
+    ("wheat_seed",        5,   220,   18,    "wheat"),
+    ("pumpkin_seed",     10,   400,   30,    "pumpkin"),
+    ("melon_seed",       10,   650,   45,    "melon"),
+    ("cucumber_seed",    10,   850,   60,    "cucumber"),
+    ("pepper_seed",      15,  1300,   90,    "pepper"),
+    ("strawberry_seed",  15,  1900,  120,    "strawberry"),
+    ("blueberry_seed",   15,  2600,  180,    "blueberry"),
+    ("grape_seed",       20,  4000,  240,    "grape"),
+    ("eggplant_seed",    20,  5500,  300,    "eggplant"),
+    ("watermelon_seed",  20,  7500,  360,    "watermelon"),
+    ("dragonfruit_seed", 25, 12000,  480,    "dragonfruit"),
+    ("pineapple_seed",   25, 18000,  600,    "pineapple"),
+    ("crystal_berry_seed",25,25000,  720,    "crystal_berry"),
+    ("starfruit_seed",   30, 50000, 1080,    "starfruit"),
 ]
 CROP_MAP = {name: (sid, rl, cost, grow) for sid, rl, cost, grow, name in CROPS}
 

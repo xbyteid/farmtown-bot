@@ -14,27 +14,37 @@ Automated farming bot for [FarmTown](https://farmtown.online) — a browser-base
 - 📊 **Metrics** — gold/hr, harvests/hr, levels, cycles, errors
 - 👥 **Multi-wallet** — run 1-100+ wallets in parallel via launcher
 - 🎯 **Smart seed selection** — prioritizes most expensive affordable crop per level for maximum EXP/harvest
+- 🌾 **All 19 crops** — full crop database from game data
 
-## Crop Priority
+## Crop Database
 
 The bot always plants the **most expensive crop** you can afford and have level for:
 
-| Crop | Level | Cost | Grow Time | Strategy |
-|------|-------|------|-----------|----------|
-| Blueberry | 15 | 2,600g | 3h | 🏆 Best EXP |
-| Strawberry | 15 | 1,900g | 2h | |
-| Pepper | 15 | 1,300g | 1.5h | |
-| Cucumber | 10 | 850g | 1h | |
-| Melon | 10 | 650g | 45m | |
-| Pumpkin | 10 | 400g | 30m | |
-| Wheat | 5 | 220g | 18m | |
-| Onion | 5 | 140g | 12m | |
-| Tomato | 5 | 90g | 8m | |
-| Corn | 1 | 45g | 5m | |
-| Carrot | 1 | 20g | 2m | |
-| Potato | 1 | 5g | 45s | 🏷️ Fallback |
+| # | Crop | Level | Cost | Grow | Reward Gold | Reward XP | Profit |
+|---|------|-------|------|------|-------------|-----------|--------|
+| 1 | 🥔 Potato | 1 | 5g | 45s | 8g | 1 | +3g |
+| 2 | 🥕 Carrot | 1 | 20g | 2m | 40g | 4 | +20g |
+| 3 | 🌽 Corn | 1 | 45g | 5m | 95g | 8 | +50g |
+| 4 | 🍅 Tomato | 5 | 90g | 8m | 200g | 14 | +110g |
+| 5 | 🧅 Onion | 5 | 140g | 12m | 330g | 22 | +190g |
+| 6 | 🌾 Wheat | 5 | 220g | 18m | 560g | 32 | +340g |
+| 7 | 🎃 Pumpkin | 10 | 400g | 30m | 1,050g | 55 | +650g |
+| 8 | 🍈 Melon | 10 | 650g | 45m | 1,800g | 80 | +1,150g |
+| 9 | 🥒 Cucumber | 10 | 850g | 1h | 2,400g | 105 | +1,550g |
+| 10 | 🌶️ Pepper | 15 | 1,300g | 1.5h | 4,000g | 150 | +2,700g |
+| 11 | 🍓 Strawberry | 15 | 1,900g | 2h | 6,200g | 210 | +4,300g |
+| 12 | 🫐 Blueberry | 15 | 2,600g | 3h | 8,800g | 280 | +6,200g |
+| 13 | 🍇 Grape | 20 | 4,000g | 4h | 9,500g | 220 | +5,500g |
+| 14 | 🍆 Eggplant | 20 | 5,500g | 5h | 13,000g | 280 | +7,500g |
+| 15 | 🍉 Watermelon | 20 | 7,500g | 6h | 18,000g | 360 | +10,500g |
+| 16 | 🥭 Dragonfruit | 25 | 12,000g | 8h | 28,000g | 500 | +16,000g |
+| 17 | 🍍 Pineapple | 25 | 18,000g | 10h | 42,000g | 700 | +24,000g |
+| 18 | 💎 Crystal Berry | 25 | 25,000g | 12h | 60,000g | 900 | +35,000g |
+| 19 | ⭐ Starfruit | 30 | 50,000g | 18h | 100,000g | 1,200 | +50,000g |
 
-Higher cost = more EXP + more gold per harvest. The bot automatically picks the best crop for your level and gold balance.
+**Strategy:** The bot picks the most expensive crop available at your level. Higher cost = more EXP + more gold per harvest.
+
+**Note:** 🌿 Weed exists in-game (costs 50 Stars, premium currency) but is excluded from auto-farming.
 
 ## Quick Start
 
