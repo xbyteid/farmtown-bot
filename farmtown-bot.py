@@ -132,39 +132,31 @@ def get_supabase_key():
 
     print("[SETUP] Supabase key not found, extracting from game...", flush=True)
     try:
-        # Fetch main page to find JS bundle
-        page = req(BASE, timeout=15)
-        # Try to get from the game's index HTML
+        import re
+        # Fetch main page to find JS bundle path
         html = urllib.request.urlopen(urllib.request.Request(BASE,
             headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read().decode()
 
-        # Look for supabase URL pattern in HTML/JS
-        import re
-        # Pattern: supabase URL + anon key
-        match = re.search(r'https://([a-z0-9]+)\.supabase\.co', html)
-        if match:
-            project_id = match.group(1)
-            # Try common supabase anon key pattern - fetch from auth endpoint
-            supa_url = f"https://{project_id}.supabase.co"
-            # The anon key is typically embedded in the JS bundle
-            # Try fetching the JS bundles
-            js_matches = re.findall(r'src="(/[^"]*\.js[^"]*)"', html)
-            for js_path in js_matches:
-                try:
-                    js_url = BASE + js_path if js_path.startswith("/") else js_path
-                    js_content = urllib.request.urlopen(urllib.request.Request(js_url,
-                        headers={"User-Agent": "Mozilla/5.0"}), timeout=15).read().decode()
-                    # Look for the anon key pattern (eyJ... base64 JWT)
-                    key_match = re.search(r'["\']?(eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)["\']', js_content)
-                    if key_match:
-                        key = key_match.group(1).strip('"\'')
-                        # Save it
-                        with open(SUPA_FILE, "w") as f:
-                            f.write(key.encode().hex())
-                        print(f"[SETUP] Supabase key extracted and saved to {SUPA_FILE}", flush=True)
-                        return key
-                except:
-                    continue
+        # Find JS bundles and search for supabase key
+        js_paths = re.findall(r'src="(/[^"]*\.js[^"]*)"', html)
+        for js_path in js_paths:
+            try:
+                js_url = BASE + js_path
+                js_content = urllib.request.urlopen(urllib.request.Request(js_url,
+                    headers={"User-Agent": "Mozilla/5.0"}), timeout=20).read().decode()
+
+                # Key might be unquoted in minified JS — use broad pattern
+                key_match = re.search(
+                    r'(eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,})',
+                    js_content)
+                if key_match:
+                    key = key_match.group(1)
+                    with open(SUPA_FILE, "w") as f:
+                        f.write(key.encode().hex())
+                    print(f"[SETUP] Supabase key extracted and saved to {SUPA_FILE}", flush=True)
+                    return key
+            except:
+                continue
     except Exception as e:
         print(f"[SETUP] Auto-extract failed: {e}", flush=True)
 
