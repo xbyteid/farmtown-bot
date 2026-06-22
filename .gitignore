@@ -3,3 +3,10 @@ __pycache__/
 *.hex
 *.log
 *.pid
+
+# Secrets — NEVER commit
+.env
+.farmtown-env
+*.key
+*.pem
+*-secret*
