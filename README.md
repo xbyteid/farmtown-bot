@@ -130,3 +130,15 @@ Monitor script reads these files instead of querying the API (zero API calls).
 ## License
 
 MIT
+
+## Disclaimer
+
+This bot is for **educational purposes only**. Use at your own risk. The authors are not responsible for any consequences including but not limited to account bans, loss of in-game assets, or violations of FarmTown's Terms of Service.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
